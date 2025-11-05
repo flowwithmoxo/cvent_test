@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Demo Exhibitor Payment Portal</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f4f4f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width: 400px;
+    }
+    h2 { text-align: center; }
+    input, select, button {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #0066ff;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #004ecc;
+    }
+    .success {
+      color: green;
+      text-align: center;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Exhibitor Payment Portal</h2>
+    <form id="paymentForm">
+      <label>Exhibitor Name</label>
+      <input type="text" id="name" required />
+
+      <label>Amount (USD)</label>
+      <input type="number" id="amount" required />
+
+      <label>Card Number</label>
+      <input type="text" id="card" placeholder="4242 4242 4242 4242" required />
+
+      <button type="submit">Pay Now</button>
+    </form>
+    <div id="message" class="success"></div>
+  </div>
+
+  <script>
+    // You can pass conversation_id and transobject_id from Moxo using query params
+    const urlParams = new URLSearchParams(window.location.search);
+    const conversation_id = urlParams.get("conversation_id");
+    const transobject_id = urlParams.get("transobject_id");
+
+    document.getElementById("paymentForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const payload = {
+        conversation_id: conversation_id || "BOFHb9PpEy8LnhLfYadXjTL",
+        transobject_id: transobject_id || "22"
+      };
+
+      document.getElementById("message").innerText = "Processing payment...";
+
+      try {
+        const response = await fetch("https://pavan-demo.moxo.com/v1/completeTransobject", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (response.ok) {
+          document.getElementById("message").innerText = "✅ Payment successful! Returning to Moxo...";
+        } else {
+          document.getElementById("message").innerText = "❌ Failed to complete step.";
+        }
+      } catch (err) {
+        document.getElementById("message").innerText = "⚠️ Error connecting to Moxo.";
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
