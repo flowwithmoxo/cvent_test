@@ -3,89 +3,56 @@
 <head>
   <meta charset="UTF-8" />
   <title>Moxo + Cvent | Exhibitor Payment Portal (Demo)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
       font-family: "Inter", Arial, sans-serif;
       background-color: #f4f6f8;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; margin: 0;
     }
     .container {
-      background: #fff;
-      padding: 2rem 2.5rem;
-      border-radius: 16px;
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
-      width: 420px;
-      max-width: 90%;
+      background: #fff; width: 420px; max-width: 92%;
+      padding: 24px 28px; border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,.08);
     }
-    h2 {
-      text-align: center;
-      color: #333;
-    }
+    h2 { margin: 0 0 12px; text-align: center; color: #1f2937; }
     .info-box {
-      background: #eef6ff;
-      border: 1px solid #bcd4ff;
-      border-radius: 10px;
-      padding: 0.8rem;
-      font-size: 0.85rem;
-      margin-bottom: 1rem;
-      color: #003366;
+      display: none; margin-bottom: 12px; padding: 10px 12px;
+      background: #eef6ff; border: 1px solid #bcd4ff; border-radius: 10px;
+      color: #0f3a75; font-size: .9rem;
+      word-break: break-word;
     }
-    label {
-      font-weight: 600;
-      margin-top: 0.5rem;
-      display: block;
-    }
+    label { display:block; margin:10px 0 4px; font-weight:600; color:#374151; }
     input, select, button {
-      width: 100%;
-      padding: 0.6rem;
-      margin-top: 0.3rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
+      width:100%; padding:.65rem .7rem; border:1px solid #d1d5db;
+      border-radius:10px; font-size:1rem;
     }
     button {
-      background-color: #0078ff;
-      color: white;
-      border: none;
-      font-weight: bold;
-      margin-top: 1rem;
-      cursor: pointer;
-      transition: 0.2s ease;
+      margin-top: 12px; border:none; background:#0078ff; color:#fff;
+      font-weight:700; cursor:pointer; transition:background .2s ease;
     }
-    button:hover {
-      background-color: #005bcc;
-    }
-    .message {
-      text-align: center;
-      margin-top: 1rem;
-      font-weight: 600;
-    }
-    .success {
-      color: #16a34a;
-    }
-    .error {
-      color: #dc2626;
-    }
+    button:hover { background:#0561cc; }
+    .message { margin-top:12px; text-align:center; font-weight:600; }
+    .success { color:#16a34a; } .error { color:#dc2626; }
+    small.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Exhibitor Payment Portal</h2>
-    <div id="moxoData" class="info-box" style="display:none;"></div>
 
-    <form id="paymentForm">
+    <div id="moxoData" class="info-box"></div>
+
+    <form id="paymentForm" autocomplete="off">
       <label>Exhibitor Name</label>
-      <input type="text" id="name" placeholder="Enter exhibitor name" required />
+      <input id="name" type="text" placeholder="Enter exhibitor name" required />
 
       <label>Organization</label>
-      <input type="text" id="org" placeholder="Company or Sponsor name" required />
+      <input id="org" type="text" placeholder="Company or Sponsor name" required />
 
       <label>Amount (USD)</label>
-      <input type="number" id="amount" min="1" placeholder="e.g. 500" required />
+      <input id="amount" type="number" min="1" step="1" placeholder="e.g. 500" required />
 
       <label>Payment Method</label>
       <select id="paymentMethod" required>
@@ -97,80 +64,81 @@
 
       <button type="submit">Pay Now</button>
     </form>
+
     <div id="message" class="message"></div>
   </div>
 
   <script>
-    // --- Read Query Parameters from Moxo ---
+    // --- Read query params passed by Moxo (when "Send Data to Web App" is enabled)
     const params = new URLSearchParams(window.location.search);
-    const moxoData = {
+    const moxo = {
       conversation_id: params.get("conversation_id"),
       transobject_id: params.get("transobject_id"),
       assignee_email: params.get("assignee_email"),
       assignee_name: params.get("assignee_name"),
       assignee_unique_id: params.get("assignee_unique_id"),
-      workspace_email: params.get("workspace_email")
+      workspace_email: params.get("workspace_email"),
     };
+    const hasMoxoIds = !!(moxo.conversation_id && moxo.transobject_id);
 
-    const hasMoxoData = !!(moxoData.conversation_id && moxoData.transobject_id);
-    const moxoDataBox = document.getElementById("moxoData");
-
-    if (hasMoxoData) {
-      moxoDataBox.style.display = "block";
-      moxoDataBox.innerHTML = `
-        <strong>Connected to Moxo Workspace</strong><br>
-        <b>Workspace ID:</b> ${moxoData.conversation_id}<br>
-        <b>Action ID:</b> ${moxoData.transobject_id}<br>
-        <b>User:</b> ${moxoData.assignee_name || "N/A"} (${moxoData.assignee_email || "N/A"})
+    // Show a small “connected” banner when launched from Moxo
+    const info = document.getElementById("moxoData");
+    if (hasMoxoIds) {
+      info.style.display = "block";
+      info.innerHTML = `
+        <strong>Connected to Moxo</strong><br/>
+        <small class="mono">Workspace (conversation_id):</small> ${moxo.conversation_id}<br/>
+        <small class="mono">Action (transobject_id):</small> ${moxo.transobject_id}<br/>
+        <small>User:</small> ${moxo.assignee_name || "N/A"} (${moxo.assignee_email || "N/A"})
       `;
-      console.log("✅ Received Moxo data:", moxoData);
+      console.log("✅ Moxo data received:", moxo);
     } else {
-      console.log("ℹ️ No Moxo data found — running in standalone mode.");
+      console.log("ℹ️ No Moxo IDs in URL — running standalone demo.");
     }
 
-    // --- Payment Simulation ---
+    // --- Payment simulation + webhook via serverless relay
     const form = document.getElementById("paymentForm");
     const message = document.getElementById("message");
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      message.textContent = "Processing payment..."; message.className = "message";
 
-      message.textContent = "Processing payment...";
-      message.className = "message";
-
+      // Simulate an async payment call
       setTimeout(async () => {
-        const success = Math.random() > 0.1; // simulate 90% success rate
-        if (success) {
-          message.textContent = "✅ Payment Successful! Thank you.";
-          message.classList.add("success");
-          form.reset();
-
-          // --- If Moxo data exists, auto-complete via webhook ---
-          if (hasMoxoData) {
-            try {
-              const res = await fetch("https://pavan-demo.moxo.com/v1/completeTransobject", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  conversation_id: moxoData.conversation_id,
-                  transobject_id: moxoData.transobject_id
-                })
-              });
-              if (res.ok) {
-                console.log("✅ Moxo step auto-completed successfully.");
-              } else {
-                console.warn("⚠️ Failed to complete Moxo step:", res.status);
-              }
-            } catch (err) {
-              console.error("❌ Error connecting to Moxo:", err);
-            }
-          }
-
-        } else {
+        const ok = Math.random() > 0.05; // 95% success to keep the demo smooth
+        if (!ok) {
           message.textContent = "❌ Payment failed. Please try again.";
           message.classList.add("error");
+          return;
         }
-      }, 1500);
+
+        message.textContent = "✅ Payment Successful! Finalizing...";
+        message.classList.add("success");
+
+        // If we have Moxo IDs, tell our relay to complete the action in Moxo
+        if (hasMoxoIds) {
+          try {
+            const res = await fetch("/api/complete", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                conversation_id: moxo.conversation_id,
+                transobject_id: moxo.transobject_id,
+              }),
+            });
+
+            if (!res.ok) {
+              const detail = await res.text();
+              console.warn("⚠️ Relay error:", res.status, detail);
+            } else {
+              console.log("✅ Moxo action marked complete via relay.");
+            }
+          } catch (err) {
+            console.error("❌ Relay fetch failed:", err);
+          }
+        }
+      }, 1200);
     });
   </script>
 </body>
